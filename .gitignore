@@ -1,0 +1,7 @@
+/.claude/*.local.json
+/.claude/plans/*.local.md
+.idea/
+__pycache__/
+*.pyc
+.pytest_cache/
+pytest-*-output.log
