@@ -92,6 +92,8 @@ resource "aws_db_instance" "this" {
   final_snapshot_identifier = var.skip_final_snapshot ? null : "${var.service_name}-final-snapshot"
   apply_immediately         = var.apply_immediately
 
+  copy_tags_to_snapshot = true
+
   performance_insights_enabled          = true
   performance_insights_retention_period = var.performance_insights_retention_period
 
