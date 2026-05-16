@@ -11,9 +11,9 @@ for line in sys.stdin:
 endef
 export PRINT_HELP_PYSCRIPT
 
-TEST_REGION="us-west-2"
-TEST_ROLE="arn:aws:iam::303467602807:role/rds-tester"
-TEST_SELECTOR="aws-6"
+TEST_REGION ?= us-west-2
+TEST_ROLE ?= arn:aws:iam::303467602807:role/rds-tester
+TEST_SELECTOR ?= aws-6
 
 help: install-hooks
 	@python -c "$$PRINT_HELP_PYSCRIPT" < Makefile

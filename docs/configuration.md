@@ -100,6 +100,14 @@ notifications = {
 | `alarm_storage_evaluation_periods` | `1` | Evaluation periods |
 | `alarm_storage_period` | `300` | Period in seconds |
 
+!!! note "Thresholds are based on `allocated_storage`, not current size"
+    Storage alarm thresholds are calculated as a percentage of `allocated_storage`
+    (the initial allocation), not the current autoscaled size. For example, with
+    `allocated_storage = 20` and `alarm_storage_percent_normal = 20`, the normal
+    alarm fires when free storage drops below 4 GiB — even if the volume has
+    autoscaled to 50 GiB. This is intentional: if your database has grown well
+    beyond its initial allocation, that itself warrants investigation.
+
 ### Disk Queue
 
 | Variable | Default | Description |
