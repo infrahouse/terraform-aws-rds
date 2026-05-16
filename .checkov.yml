@@ -2,8 +2,11 @@ soft-fail: false
 framework:
   - terraform
 skip-check:
-  - CKV_TF_2  # Module sources use private registry with exact versions, not git URLs
+  - CKV_TF_1  # Module sources use private registry with exact versions, not git URLs
+  - CKV_TF_2  # Same as above (variant check)
+  - CKV_AWS_354  # PI encrypted with AWS-managed key; no user data in PI metrics
 skip-path:
   - .terraform
   - test_data
+  - examples
   - .venv

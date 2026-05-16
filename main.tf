@@ -76,7 +76,8 @@ resource "aws_db_instance" "this" {
   username = var.username
   port     = var.port
 
-  manage_master_user_password = true
+  manage_master_user_password         = true
+  iam_database_authentication_enabled = true
 
   db_subnet_group_name   = aws_db_subnet_group.this.name
   parameter_group_name   = aws_db_parameter_group.this.name
@@ -92,7 +93,13 @@ resource "aws_db_instance" "this" {
   final_snapshot_identifier = var.skip_final_snapshot ? null : "${var.service_name}-final-snapshot"
   apply_immediately         = var.apply_immediately
 
-  copy_tags_to_snapshot = true
+  copy_tags_to_snapshot      = true
+  auto_minor_version_upgrade = true
+
+  monitoring_interval = 60
+  monitoring_role_arn = aws_iam_role.rds_monitoring.arn
+
+  enabled_cloudwatch_logs_exports = ["audit", "error", "slowquery"]
 
   performance_insights_enabled          = true
   performance_insights_retention_period = var.performance_insights_retention_period
