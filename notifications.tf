@@ -9,7 +9,8 @@ locals {
 resource "aws_sns_topic" "alarms" {
   count = local.create_sns_topic ? 1 : 0
 
-  name_prefix = "${var.service_name}-rds-alarms-"
+  name_prefix       = "${var.service_name}-rds-alarms-"
+  kms_master_key_id = "alias/aws/sns"
 
   tags = merge(local.default_module_tags, {
     Name = "${var.service_name}-rds-alarms"
