@@ -1,6 +1,8 @@
 soft-fail: false
 framework:
   - terraform
+skip-check:
+  - CKV_TF_2  # Module sources use private registry with exact versions, not git URLs
 skip-path:
   - .terraform
   - test_data
