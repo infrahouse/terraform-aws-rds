@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2026-05-16
+
+### Bug Fixes
+
+- Add .checkov.yml for CI checkov scan
+- Add copy_tags_to_snapshot and skip CKV_TF_2
+- Address all checkov findings
+
+### Features
+
+- Implement terraform-aws-rds module
+- Enable audit logging and document storage alarm thresholds
+
+### Miscellaneous Tasks
+
+- Adopt do_release macro and seed CHANGELOG
+
 ## [0.1.0] - 2026-05-16
 
 ### Bug Fixes
