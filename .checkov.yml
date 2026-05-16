@@ -1,0 +1,7 @@
+soft-fail: false
+framework:
+  - terraform
+skip-path:
+  - .terraform
+  - test_data
+  - .venv
