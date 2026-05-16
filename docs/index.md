@@ -22,7 +22,7 @@ built-in observability, security hardening, and compliance tagging.
 ```hcl
 module "rds" {
   source  = "registry.infrahouse.com/infrahouse/rds/aws"
-  version = "0.1.0"
+  version = "0.2.0"
 
   environment  = "production"
   service_name = "my-app"
