@@ -1,5 +1,6 @@
 /.claude/*.local.json
 /.claude/plans/*.local.md
+.claude/reviews/
 .idea/
 __pycache__/
 *.pyc

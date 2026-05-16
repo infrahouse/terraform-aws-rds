@@ -41,6 +41,18 @@ resource "aws_db_parameter_group" "this" {
     apply_method = "immediate"
   }
 
+  parameter {
+    name         = "server_audit_logging"
+    value        = var.server_audit_events != "" ? "1" : "0"
+    apply_method = "immediate"
+  }
+
+  parameter {
+    name         = "server_audit_events"
+    value        = var.server_audit_events
+    apply_method = "immediate"
+  }
+
   dynamic "parameter" {
     for_each = var.parameters
     content {
