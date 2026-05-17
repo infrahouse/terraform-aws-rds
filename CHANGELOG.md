@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [0.2.1] - 2026-05-17
 
+### Miscellaneous Tasks
+
+- Update CHANGELOG for 0.2.1
+
+### Styling
+
+- Fix fonts in architecture
+
+### Ci
+
+- Add CD workflow to publish module to registry on tag push ([#2](https://github.com/infrahouse/terraform-aws-rds/issues/2))
+
+## [0.2.1] - 2026-05-17
+
 ### Styling
 
 - Fix fonts in architecture
