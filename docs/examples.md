@@ -7,7 +7,7 @@ The simplest deployment with all defaults:
 ```hcl
 module "rds" {
   source  = "registry.infrahouse.com/infrahouse/rds/aws"
-  version = "0.2.0"
+  version = "0.2.1"
 
   environment  = "production"
   service_name = "my-app"
@@ -25,7 +25,7 @@ For a larger workload with more storage:
 ```hcl
 module "rds" {
   source  = "registry.infrahouse.com/infrahouse/rds/aws"
-  version = "0.2.0"
+  version = "0.2.1"
 
   environment  = "production"
   service_name = "analytics"
@@ -47,7 +47,7 @@ Route urgent alarms to PagerDuty, normal ones to email:
 ```hcl
 module "rds" {
   source  = "registry.infrahouse.com/infrahouse/rds/aws"
-  version = "0.2.0"
+  version = "0.2.1"
 
   environment  = "production"
   service_name = "payments"
@@ -72,7 +72,7 @@ Grant an ECS task role access to read the master password:
 ```hcl
 module "rds" {
   source  = "registry.infrahouse.com/infrahouse/rds/aws"
-  version = "0.2.0"
+  version = "0.2.1"
 
   environment  = "production"
   service_name = "api"
@@ -95,7 +95,7 @@ Reduced redundancy and protections for development:
 ```hcl
 module "rds" {
   source  = "registry.infrahouse.com/infrahouse/rds/aws"
-  version = "0.2.0"
+  version = "0.2.1"
 
   environment  = "development"
   service_name = "my-app"
@@ -117,7 +117,7 @@ Use an older MySQL version:
 ```hcl
 module "rds" {
   source  = "registry.infrahouse.com/infrahouse/rds/aws"
-  version = "0.2.0"
+  version = "0.2.1"
 
   environment  = "production"
   service_name = "legacy-app"
@@ -139,7 +139,7 @@ Tune MySQL for your workload:
 ```hcl
 module "rds" {
   source  = "registry.infrahouse.com/infrahouse/rds/aws"
-  version = "0.2.0"
+  version = "0.2.1"
 
   environment  = "production"
   service_name = "my-app"

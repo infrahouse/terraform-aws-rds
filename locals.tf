@@ -13,7 +13,7 @@ data "aws_ec2_instance_type" "this" {
 }
 
 locals {
-  module_version = "0.2.0"
+  module_version = "0.2.1"
 
   # db.t4g.micro -> t4g.micro
   ec2_instance_type = replace(var.instance_class, "/^db\\./", "")
