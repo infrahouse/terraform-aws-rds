@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.2] - 2026-05-25
+
+### Bug Fixes
+
+- Remove audit plugin params and fix notifications count ([#3](https://github.com/infrahouse/terraform-aws-rds/issues/3)) ([#4](https://github.com/infrahouse/terraform-aws-rds/issues/4))
+
 ## [0.2.1] - 2026-05-17
 
 ### Miscellaneous Tasks
