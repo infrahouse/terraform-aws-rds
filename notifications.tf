@@ -1,9 +1,5 @@
 locals {
-  create_sns_topic = (
-    var.notifications.urgent == null
-    && var.notifications.high == null
-    && var.notifications.normal == null
-  )
+  create_sns_topic = var.notifications == null
 }
 
 resource "aws_sns_topic" "alarms" {
