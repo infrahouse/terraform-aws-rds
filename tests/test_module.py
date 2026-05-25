@@ -29,15 +29,13 @@ def test_rds(
 
     terraform_dir = osp.join(terraform_module_dir, ".terraform")
     if osp.isdir(terraform_dir):
-        shutil.rmtree(terraform_dir, onexc=_remove_readonly)
+        shutil.rmtree(terraform_dir, onerror=lambda func, path, _: _remove_readonly(func, path, None))
     lock_file = osp.join(terraform_module_dir, ".terraform.lock.hcl")
     if osp.isfile(lock_file):
         os.remove(lock_file)
 
     with open(osp.join(terraform_module_dir, "terraform.tf"), "w") as fp:
-        fp.write(
-            dedent(
-                f"""
+        fp.write(dedent(f"""
                 terraform {{
                   required_providers {{
                     aws = {{
@@ -50,27 +48,17 @@ def test_rds(
                     }}
                   }}
                 }}
-                """
-            )
-        )
+                """))
 
     with open(osp.join(terraform_module_dir, "terraform.tfvars"), "w") as fp:
-        fp.write(
-            dedent(
-                f"""
+        fp.write(dedent(f"""
                 region     = "{aws_region}"
                 subnet_ids = {json.dumps(service_network["subnet_private_ids"]["value"])}
-                """
-            )
-        )
+                """))
         if test_role_arn:
-            fp.write(
-                dedent(
-                    f"""
+            fp.write(dedent(f"""
                     role_arn = "{test_role_arn}"
-                    """
-                )
-            )
+                    """))
 
     with terraform_apply(
         terraform_module_dir,

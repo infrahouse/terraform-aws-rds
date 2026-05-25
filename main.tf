@@ -41,18 +41,6 @@ resource "aws_db_parameter_group" "this" {
     apply_method = "immediate"
   }
 
-  parameter {
-    name         = "server_audit_logging"
-    value        = var.server_audit_events != "" ? "1" : "0"
-    apply_method = "immediate"
-  }
-
-  parameter {
-    name         = "server_audit_events"
-    value        = var.server_audit_events
-    apply_method = "immediate"
-  }
-
   dynamic "parameter" {
     for_each = var.parameters
     content {
@@ -111,7 +99,7 @@ resource "aws_db_instance" "this" {
   monitoring_interval = 60
   monitoring_role_arn = aws_iam_role.rds_monitoring.arn
 
-  enabled_cloudwatch_logs_exports = ["audit", "error", "slowquery"]
+  enabled_cloudwatch_logs_exports = ["error", "slowquery"]
 
   performance_insights_enabled          = true
   performance_insights_retention_period = var.performance_insights_retention_period

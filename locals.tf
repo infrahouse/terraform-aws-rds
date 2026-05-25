@@ -74,8 +74,7 @@ locals {
   )
 
   # Alarm notification targets
-  default_sns_arn      = local.create_sns_topic ? aws_sns_topic.alarms[0].arn : null
-  alarm_actions_urgent = [coalesce(var.notifications.urgent, local.default_sns_arn)]
-  alarm_actions_high   = [coalesce(var.notifications.high, local.default_sns_arn)]
-  alarm_actions_normal = [coalesce(var.notifications.normal, local.default_sns_arn)]
+  alarm_actions_urgent = [local.create_sns_topic ? aws_sns_topic.alarms[0].arn : var.notifications.urgent]
+  alarm_actions_high   = [local.create_sns_topic ? aws_sns_topic.alarms[0].arn : var.notifications.high]
+  alarm_actions_normal = [local.create_sns_topic ? aws_sns_topic.alarms[0].arn : var.notifications.normal]
 }

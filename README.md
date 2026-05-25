@@ -155,14 +155,13 @@ Full documentation is available at
 | <a name="input_maintenance_window"></a> [maintenance\_window](#input\_maintenance\_window) | Preferred maintenance window | `string` | `"Mon:03:00-Mon:04:00"` | no |
 | <a name="input_max_allocated_storage"></a> [max\_allocated\_storage](#input\_max\_allocated\_storage) | Max storage for autoscaling in GiB | `number` | `100` | no |
 | <a name="input_multi_az"></a> [multi\_az](#input\_multi\_az) | Enable Multi-AZ deployment | `bool` | `true` | no |
-| <a name="input_notifications"></a> [notifications](#input\_notifications) | SNS topic ARNs per severity tier (overrides alarm\_emails when set) | <pre>object({<br/>    urgent = optional(string)<br/>    high   = optional(string)<br/>    normal = optional(string)<br/>  })</pre> | `{}` | no |
+| <a name="input_notifications"></a> [notifications](#input\_notifications) | SNS topic ARNs per severity tier. All three tiers must be specified.<br/>If null, a default SNS topic is created using alarm\_emails. | <pre>object({<br/>    urgent = string<br/>    high   = string<br/>    normal = string<br/>  })</pre> | `null` | no |
 | <a name="input_parameter_group_family"></a> [parameter\_group\_family](#input\_parameter\_group\_family) | DB parameter group family (null = derived from engine\_version) | `string` | `null` | no |
 | <a name="input_parameters"></a> [parameters](#input\_parameters) | Additional DB parameters (merged with module defaults) | <pre>list(object({<br/>    name  = string<br/>    value = string<br/>  }))</pre> | `[]` | no |
 | <a name="input_performance_insights_retention_period"></a> [performance\_insights\_retention\_period](#input\_performance\_insights\_retention\_period) | Performance Insights retention in days (7 = free tier, 31-731 = paid) | `number` | `7` | no |
 | <a name="input_port"></a> [port](#input\_port) | Database port | `number` | `3306` | no |
 | <a name="input_read_only"></a> [read\_only](#input\_read\_only) | Set the database to read-only mode (immediate, no reboot) | `bool` | `false` | no |
 | <a name="input_secret_readers"></a> [secret\_readers](#input\_secret\_readers) | IAM ARNs allowed to read the master password secret | `list(string)` | `[]` | no |
-| <a name="input_server_audit_events"></a> [server\_audit\_events](#input\_server\_audit\_events) | Comma-separated list of audit events to log (empty string disables audit logging) | `string` | `"CONNECT,QUERY_DCL,QUERY_DDL"` | no |
 | <a name="input_service_name"></a> [service\_name](#input\_service\_name) | Service name (used in naming and tags) | `string` | n/a | yes |
 | <a name="input_skip_final_snapshot"></a> [skip\_final\_snapshot](#input\_skip\_final\_snapshot) | Skip final snapshot on deletion | `bool` | `false` | no |
 | <a name="input_storage_type"></a> [storage\_type](#input\_storage\_type) | Storage type (gp3, io1, io2) | `string` | `"gp3"` | no |

@@ -131,12 +131,6 @@ variable "long_query_time" {
   default     = 1
 }
 
-variable "server_audit_events" {
-  type        = string
-  description = "Comma-separated list of audit events to log (empty string disables audit logging)"
-  default     = "CONNECT,QUERY_DCL,QUERY_DDL"
-}
-
 variable "parameters" {
   type = list(object({
     name  = string
@@ -196,12 +190,15 @@ variable "alarm_emails" {
 
 variable "notifications" {
   type = object({
-    urgent = optional(string)
-    high   = optional(string)
-    normal = optional(string)
+    urgent = string
+    high   = string
+    normal = string
   })
-  description = "SNS topic ARNs per severity tier (overrides alarm_emails when set)"
-  default     = {}
+  description = <<-EOT
+    SNS topic ARNs per severity tier. All three tiers must be specified.
+    If null, a default SNS topic is created using alarm_emails.
+  EOT
+  default     = null
 }
 
 ## Alarm Thresholds
