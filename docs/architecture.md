@@ -94,7 +94,7 @@ Each engine gets its own Performance Insights panels, followed by the same syste
 3. **Transactions** — commits vs rollbacks; active, blocked, and idle-in-transaction sessions
 4. **Tuples & Deadlocks** — tuples returned/fetched/inserted/updated/deleted, deadlocks
 5. **Buffer Cache & Read Latency** — blocks hit in cache vs read from disk, block read latency
-6. **Checkpoints** — timed vs requested, write and sync latency
+6. **Checkpoints** — timed vs requested, write and sync time
 7. **Temporary Files & Transaction ID Age** — temp files and bytes; unvacuumed transactions and
    oldest running transaction age (wraparound risk)
 
@@ -107,5 +107,9 @@ Each engine gets its own Performance Insights panels, followed by the same syste
 
 All PI-based widgets use `DB_PERF_INSIGHTS` math expressions, which require the instance
 to have Performance Insights enabled. Counter names follow the AWS
-[Performance Insights counter metrics](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights_Counters.html)
-reference.
+[Performance Insights counter metrics][pi-counters]
+reference, except for the PostgreSQL checkpoint counters. Those use the PostgreSQL 17+ names
+(`db.Checkpoint.num_timed`, `db.Checkpoint.write_time`, ...) that a postgres 18 instance reports, so on
+PostgreSQL 16 and older the checkpoint panels stay empty.
+
+[pi-counters]: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_PerfInsights_Counters.html

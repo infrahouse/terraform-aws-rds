@@ -1,11 +1,12 @@
 import json
 import os
+import re
 import stat
 import shutil
 import time
 from os import path as osp
 from textwrap import dedent
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 import boto3
 import pytest
@@ -89,6 +90,34 @@ def _widget_titles(dashboard_body: str) -> List[str]:
     :return: List of widget titles
     """
     return [w["properties"]["title"] for w in json.loads(dashboard_body)["widgets"]]
+
+
+def _dashboard_pi_counters(dashboard_body: str) -> Set[str]:
+    """
+    Extract Performance Insights counter names used in DB_PERF_INSIGHTS() expressions.
+
+    :param dashboard_body: Dashboard body JSON as returned by GetDashboard
+    :return: Counter names, e.g. {"db.User.numbackends", ...}
+    """
+    return set(re.findall(r"DB_PERF_INSIGHTS\('RDS', '[^']+', '([^']+)\.avg'\)", dashboard_body))
+
+
+def _available_pi_counters(pi_client, resource_id: str) -> Set[str]:
+    """
+    Return the database counter metrics Performance Insights offers for an instance.
+
+    :param pi_client: boto3 Performance Insights client
+    :param resource_id: DbiResourceId of the RDS instance
+    :return: Counter names, e.g. {"db.User.numbackends", ...}
+    """
+    counters = set()
+    kwargs = {"ServiceType": "RDS", "Identifier": resource_id, "MetricTypes": ["db"]}
+    while True:
+        response = pi_client.list_available_resource_metrics(**kwargs)
+        counters.update(m["Metric"] for m in response["Metrics"])
+        if not response.get("NextToken"):
+            return counters
+        kwargs["NextToken"] = response["NextToken"]
 
 
 @pytest.mark.parametrize("engine", list(ENGINES))
@@ -198,3 +227,10 @@ def test_rds(
         titles = _widget_titles(dashboard["DashboardBody"])
         assert expected["connections_widget"] in titles
         assert not [t for t in titles if expected["foreign_marker"] in t], titles
+
+        # Every Performance Insights counter on the dashboard exists for this engine and version
+        pi_client = boto3_session.client("pi", region_name=aws_region)
+        used_counters = _dashboard_pi_counters(dashboard["DashboardBody"])
+        assert used_counters
+        missing = used_counters - _available_pi_counters(pi_client, instance["DbiResourceId"])
+        assert not missing, sorted(missing)

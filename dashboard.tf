@@ -205,18 +205,20 @@ locals {
         },
 
         # ── Checkpoints ─────────────────────────────────────────────────
+        # PostgreSQL 17+ counter names (pg_stat_checkpointer), taken from
+        # `aws pi list-available-resource-metrics` on a postgres 18 instance.
         {
           title = "PostgreSQL Checkpoints (per minute)"
           metrics = [
-            ["db.Checkpoint.checkpoints_timed", "checkpoints_timed"],
-            ["db.Checkpoint.checkpoints_req", "checkpoints_req"],
+            ["db.Checkpoint.num_timed", "num_timed"],
+            ["db.Checkpoint.num_requested", "num_requested"],
           ]
         },
         {
-          title = "PostgreSQL Checkpoint Latency (ms per checkpoint)"
+          title = "PostgreSQL Checkpoint Time (ms per checkpoint)"
           metrics = [
-            ["db.Checkpoint.checkpoint_write_latency", "write"],
-            ["db.Checkpoint.checkpoint_sync_latency", "sync"],
+            ["db.Checkpoint.write_time", "write"],
+            ["db.Checkpoint.sync_time", "sync"],
           ]
         },
 
