@@ -93,7 +93,7 @@ Each engine gets its own Performance Insights panels, followed by the same syste
 2. **Connections** — numbackends with max_connections line, connection attempts
 3. **Transactions** — commits vs rollbacks; active, blocked, and idle-in-transaction sessions
 4. **Tuples & Deadlocks** — tuples returned/fetched/inserted/updated/deleted, deadlocks
-5. **Buffer Cache & Read Latency** — blocks hit in cache vs read from disk, block read latency
+5. **Buffer Cache & Read Time** — blocks hit in cache vs read from disk, time spent reading blocks
 6. **Checkpoints** — timed vs requested, write and sync time
 7. **Temporary Files & Transaction ID Age** — temp files and bytes; unvacuumed transactions and
    oldest running transaction age (wraparound risk)
