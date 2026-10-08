@@ -200,8 +200,10 @@ locals {
           ]
         },
         {
-          title   = "PostgreSQL Block Read Latency (ms)"
-          metrics = [["db.IO.read_latency", "read_latency"]]
+          # db.IO.read_latency is derived (blk_read_time / blks_read) and PI drops it when there were no
+          # recent reads, so use the underlying counter. Needs track_io_timing, on by default in postgres18.
+          title   = "PostgreSQL Block Read Time (ms)"
+          metrics = [["db.IO.blk_read_time", "blk_read_time"]]
         },
 
         # ── Checkpoints ─────────────────────────────────────────────────
