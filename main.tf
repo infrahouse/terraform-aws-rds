@@ -11,34 +11,13 @@ resource "aws_db_parameter_group" "this" {
   name_prefix = "${var.service_name}-"
   family      = local.parameter_group_family
 
-  parameter {
-    name         = "log_bin_trust_function_creators"
-    value        = "1"
-    apply_method = "immediate"
-  }
-
-  parameter {
-    name         = "binlog_format"
-    value        = "ROW"
-    apply_method = "immediate"
-  }
-
-  parameter {
-    name         = "performance_schema"
-    value        = "1"
-    apply_method = "pending-reboot"
-  }
-
-  parameter {
-    name         = "read_only"
-    value        = var.read_only ? "1" : "0"
-    apply_method = "immediate"
-  }
-
-  parameter {
-    name         = "long_query_time"
-    value        = tostring(var.long_query_time)
-    apply_method = "immediate"
+  dynamic "parameter" {
+    for_each = local.engine_config.parameters
+    content {
+      name         = parameter.value.name
+      value        = parameter.value.value
+      apply_method = parameter.value.apply_method
+    }
   }
 
   dynamic "parameter" {
@@ -56,14 +35,23 @@ resource "aws_db_parameter_group" "this" {
 
   lifecycle {
     create_before_destroy = true
+
+    precondition {
+      condition     = var.engine == "postgres" ? !var.read_only : true
+      error_message = <<-EOT
+        read_only = true is not supported with engine = "postgres". PostgreSQL has no server-wide
+        read-only switch: default_transaction_read_only is only a session default that any client can
+        override with SET. Revoke write privileges or use a read replica instead.
+      EOT
+    }
   }
 }
 
 resource "aws_db_instance" "this" {
   identifier_prefix = local.identifier_prefix
 
-  engine         = "mysql"
-  engine_version = var.engine_version
+  engine         = var.engine
+  engine_version = local.engine_version
   instance_class = var.instance_class
 
   allocated_storage     = var.allocated_storage
@@ -73,8 +61,8 @@ resource "aws_db_instance" "this" {
   kms_key_id            = var.kms_key_id
 
   db_name  = var.db_name
-  username = var.username
-  port     = var.port
+  username = local.username
+  port     = local.port
 
   manage_master_user_password         = true
   iam_database_authentication_enabled = true
@@ -99,7 +87,7 @@ resource "aws_db_instance" "this" {
   monitoring_interval = 60
   monitoring_role_arn = aws_iam_role.rds_monitoring.arn
 
-  enabled_cloudwatch_logs_exports = ["error", "slowquery"]
+  enabled_cloudwatch_logs_exports = local.engine_config.logs_exports
 
   performance_insights_enabled          = true
   performance_insights_retention_period = var.performance_insights_retention_period

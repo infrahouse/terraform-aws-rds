@@ -19,9 +19,9 @@ AWS SNS confirmation email. Click "Confirm subscription" in each.
 ### Instance creation fails with "Performance Insights not supported"
 
 **Cause:** The chosen `instance_class` doesn't support Performance Insights for the
-selected MySQL version.
+selected engine version.
 
-**Fix:** Use `db.t4g.medium` or larger for MySQL 8.4. The module defaults to this, but
+**Fix:** Use `db.t4g.medium` or larger for MySQL 8.4 and PostgreSQL 18. The module defaults to this, but
 if you've overridden `instance_class`, ensure your choice supports PI.
 
 Verify support:

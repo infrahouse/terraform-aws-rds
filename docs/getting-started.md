@@ -54,12 +54,12 @@ aws secretsmanager get-secret-value \
 
 | Resource | Purpose |
 |----------|---------|
-| `aws_db_instance` | The RDS MySQL instance |
+| `aws_db_instance` | The RDS MySQL or PostgreSQL instance |
 | `aws_db_subnet_group` | Places the instance in your private subnets |
-| `aws_db_parameter_group` | MySQL parameters (slow query log, performance_schema, etc.) |
+| `aws_db_parameter_group` | Engine parameters (slow query logging; binlog and performance_schema on MySQL) |
 | `aws_security_group` | Network access control |
 | `aws_cloudwatch_metric_alarm` (x7) | CPU, memory, storage (3 tiers), disk queue, connections |
-| `aws_cloudwatch_dashboard` | PMM-style monitoring dashboard |
+| `aws_cloudwatch_dashboard` | Per-engine monitoring dashboard |
 | `aws_sns_topic` + subscriptions | Alarm notifications (if not providing your own) |
 
 ## Next Steps

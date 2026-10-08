@@ -9,21 +9,24 @@
 
 # terraform-aws-rds
 
-An opinionated Terraform module for provisioning production-ready AWS RDS MySQL instances with
+An opinionated Terraform module for provisioning production-ready AWS RDS MySQL and PostgreSQL instances with
 built-in observability, security hardening, and compliance tagging.
 
 ## Features
 
-- **MySQL 8.x** with Performance Insights always enabled
+- **MySQL 8.x or PostgreSQL** (`engine = "mysql"` or `"postgres"`) with Performance Insights always enabled
 - **CloudWatch alarms** with severity-based routing (urgent/high/normal)
-- **PMM-style CloudWatch dashboard** — InnoDB rows, transactions, buffer pool, connections, locks, and more
+- **Per-engine CloudWatch dashboard** — InnoDB, threads, and locks for MySQL; transactions, tuples, buffer cache,
+  checkpoints, and transaction ID age for PostgreSQL; CPU, memory, storage, IOPS, and latency for both
+- **Slow query logging** from one `long_query_time` knob for both engines
+- **TLS required** on PostgreSQL (`rds.force_ssl = 1`, the RDS default)
 - **Automatic SNS topic** creation with email subscriptions when explicit topic ARNs aren't provided
 - **Storage encryption** (KMS) enabled by default
 - **Multi-AZ** deployment by default
 - **Vanta compliance tags** for SOC2/ISO27001 audits
 - **Security group** with VPC-scoped access and optional CIDR/SG overrides
 - **Secrets Manager** integration with configurable IAM reader access
-- **Parameter group** family auto-derived from engine version
+- **Parameter group** family auto-derived from engine and engine version (`mysql8.4`, `postgres18`)
 
 ## Architecture
 
@@ -50,6 +53,27 @@ This creates a `db.t4g.medium` MySQL 8.4 instance with:
 - 7 CloudWatch alarms routed to an auto-created SNS topic
 - A comprehensive CloudWatch dashboard
 - Deletion protection enabled
+
+### PostgreSQL
+
+```hcl
+module "rds" {
+  source  = "registry.infrahouse.com/infrahouse/rds/aws"
+  version = "0.2.2"
+
+  engine = "postgres"
+
+  environment  = "production"
+  service_name = "my-app"
+  subnet_ids   = module.vpc.private_subnet_ids
+
+  alarm_emails = ["oncall@example.com", "dba@example.com"]
+}
+```
+
+This creates a PostgreSQL 18 instance (latest 18.x minor) on port 5432 with the master user `postgres`,
+the `postgres18` parameter group family, `postgresql` and `upgrade` logs exported to CloudWatch, and the
+same alarms, encryption, and Multi-AZ defaults as MySQL.
 
 ## Documentation
 
@@ -146,31 +170,32 @@ Full documentation is available at
 | <a name="input_backup_window"></a> [backup\_window](#input\_backup\_window) | Preferred backup window | `string` | `"02:00-02:30"` | no |
 | <a name="input_db_name"></a> [db\_name](#input\_db\_name) | Database name to create on launch | `string` | `null` | no |
 | <a name="input_deletion_protection"></a> [deletion\_protection](#input\_deletion\_protection) | Enable deletion protection | `bool` | `true` | no |
-| <a name="input_engine_version"></a> [engine\_version](#input\_engine\_version) | MySQL engine version | `string` | `"8.4"` | no |
+| <a name="input_engine"></a> [engine](#input\_engine) | Database engine: "mysql" or "postgres" | `string` | `"mysql"` | no |
+| <a name="input_engine_version"></a> [engine\_version](#input\_engine\_version) | Engine version. null = per-engine default ("8.4" for mysql, "18" for postgres).<br/>A major version (e.g. "18") lets RDS pick the latest minor version. | `string` | `null` | no |
 | <a name="input_environment"></a> [environment](#input\_environment) | Environment name (lowercase, underscores only) | `string` | n/a | yes |
 | <a name="input_identifier_prefix"></a> [identifier\_prefix](#input\_identifier\_prefix) | Identifier prefix for the RDS instance (auto-generated if null) | `string` | `null` | no |
 | <a name="input_instance_class"></a> [instance\_class](#input\_instance\_class) | RDS instance class | `string` | `"db.t4g.medium"` | no |
 | <a name="input_kms_key_id"></a> [kms\_key\_id](#input\_kms\_key\_id) | KMS key ARN for storage encryption (null = AWS managed key) | `string` | `null` | no |
-| <a name="input_long_query_time"></a> [long\_query\_time](#input\_long\_query\_time) | Threshold in seconds for slow query logging | `number` | `1` | no |
+| <a name="input_long_query_time"></a> [long\_query\_time](#input\_long\_query\_time) | Threshold in seconds for slow query logging.<br/>Sets long\_query\_time on mysql and log\_min\_duration\_statement (in milliseconds) on postgres. | `number` | `1` | no |
 | <a name="input_maintenance_window"></a> [maintenance\_window](#input\_maintenance\_window) | Preferred maintenance window | `string` | `"Mon:03:00-Mon:04:00"` | no |
 | <a name="input_max_allocated_storage"></a> [max\_allocated\_storage](#input\_max\_allocated\_storage) | Max storage for autoscaling in GiB | `number` | `100` | no |
 | <a name="input_multi_az"></a> [multi\_az](#input\_multi\_az) | Enable Multi-AZ deployment | `bool` | `true` | no |
 | <a name="input_notifications"></a> [notifications](#input\_notifications) | SNS topic ARNs per severity tier. All three tiers must be specified.<br/>If null, a default SNS topic is created using alarm\_emails. | <pre>object({<br/>    urgent = string<br/>    high   = string<br/>    normal = string<br/>  })</pre> | `null` | no |
-| <a name="input_parameter_group_family"></a> [parameter\_group\_family](#input\_parameter\_group\_family) | DB parameter group family (null = derived from engine\_version) | `string` | `null` | no |
+| <a name="input_parameter_group_family"></a> [parameter\_group\_family](#input\_parameter\_group\_family) | DB parameter group family (null = derived from engine and engine\_version, e.g. mysql8.4, postgres18) | `string` | `null` | no |
 | <a name="input_parameters"></a> [parameters](#input\_parameters) | Additional DB parameters (merged with module defaults) | <pre>list(object({<br/>    name  = string<br/>    value = string<br/>  }))</pre> | `[]` | no |
 | <a name="input_performance_insights_retention_period"></a> [performance\_insights\_retention\_period](#input\_performance\_insights\_retention\_period) | Performance Insights retention in days (7 = free tier, 31-731 = paid) | `number` | `7` | no |
-| <a name="input_port"></a> [port](#input\_port) | Database port | `number` | `3306` | no |
-| <a name="input_read_only"></a> [read\_only](#input\_read\_only) | Set the database to read-only mode (immediate, no reboot) | `bool` | `false` | no |
+| <a name="input_port"></a> [port](#input\_port) | Database port (null = 3306 for mysql, 5432 for postgres) | `number` | `null` | no |
+| <a name="input_read_only"></a> [read\_only](#input\_read\_only) | Set the database to read-only mode (immediate, no reboot). MySQL only;<br/>PostgreSQL has no equivalent server-wide setting, so true is rejected when engine = "postgres". | `bool` | `false` | no |
 | <a name="input_secret_readers"></a> [secret\_readers](#input\_secret\_readers) | IAM ARNs allowed to read the master password secret | `list(string)` | `[]` | no |
 | <a name="input_service_name"></a> [service\_name](#input\_service\_name) | Service name (used in naming and tags) | `string` | n/a | yes |
 | <a name="input_skip_final_snapshot"></a> [skip\_final\_snapshot](#input\_skip\_final\_snapshot) | Skip final snapshot on deletion | `bool` | `false` | no |
 | <a name="input_storage_type"></a> [storage\_type](#input\_storage\_type) | Storage type (gp3, io1, io2) | `string` | `"gp3"` | no |
 | <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | Private subnet IDs for the DB subnet group (VPC derived from first subnet) | `list(string)` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags to merge | `map(string)` | `{}` | no |
-| <a name="input_username"></a> [username](#input\_username) | Master username | `string` | `"admin"` | no |
+| <a name="input_username"></a> [username](#input\_username) | Master username (null = "admin" for mysql, "postgres" for postgres) | `string` | `null` | no |
 | <a name="input_vanta_contains_ephi"></a> [vanta\_contains\_ephi](#input\_vanta\_contains\_ephi) | VantaContainsEPHI | `bool` | `false` | no |
 | <a name="input_vanta_contains_user_data"></a> [vanta\_contains\_user\_data](#input\_vanta\_contains\_user\_data) | VantaContainsUserData | `bool` | `true` | no |
-| <a name="input_vanta_description"></a> [vanta\_description](#input\_vanta\_description) | VantaDescription | `string` | `"RDS MySQL database"` | no |
+| <a name="input_vanta_description"></a> [vanta\_description](#input\_vanta\_description) | VantaDescription (null = "RDS MySQL database" or "RDS PostgreSQL database") | `string` | `null` | no |
 | <a name="input_vanta_non_prod"></a> [vanta\_non\_prod](#input\_vanta\_non\_prod) | VantaNonProd (null = derived from environment) | `bool` | `null` | no |
 | <a name="input_vanta_owner"></a> [vanta\_owner](#input\_vanta\_owner) | VantaOwner tag value (defaults to service\_name) | `string` | `null` | no |
 | <a name="input_vanta_user_data_stored"></a> [vanta\_user\_data\_stored](#input\_vanta\_user\_data\_stored) | VantaUserDataStored (description of what user data) | `string` | `null` | no |
