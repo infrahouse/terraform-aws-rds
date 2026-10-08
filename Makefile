@@ -11,7 +11,8 @@ for line in sys.stdin:
 endef
 export PRINT_HELP_PYSCRIPT
 
-TEST_REGION ?= us-west-2
+# Not us-west-2: db.t4g.medium (gp3) isn't orderable in us-west-2b, where the test VPC has a subnet
+TEST_REGION ?= us-west-1
 TEST_ROLE ?= arn:aws:iam::303467602807:role/rds-tester
 TEST_SELECTOR ?= aws-6
 
@@ -29,7 +30,10 @@ install-hooks:  ## Install repo hooks
 
 .PHONY: test
 test:  ## Run tests on the module
-	pytest -xvvs tests/
+	pytest -xvvs \
+		--aws-region=${TEST_REGION} \
+		--test-role-arn=${TEST_ROLE} \
+		tests/
 
 .PHONY: test-keep
 test-keep:  ## Run a test and keep resources
