@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-10-08
+
+### Bug Fixes
+
+- Use PostgreSQL 17+ checkpoint counter names in the dashboard
+- Chart PostgreSQL block read time instead of read latency
+
+### Features
+
+- Add PostgreSQL support
+
+### Styling
+
+- Run black 26.5 against the codebase
+
+### Testing
+
+- Use db.t3.medium for the PostgreSQL test instance
+
+### Ci
+
+- Run integration tests on pull requests
+
 ## [0.2.2] - 2026-05-25
 
 ### Bug Fixes
