@@ -132,6 +132,36 @@ module "rds" {
 
 The parameter group family is automatically derived as `mysql8.0`.
 
+## PostgreSQL
+
+PostgreSQL 18 with a 500 ms slow-query threshold:
+
+```hcl
+module "rds" {
+  source  = "registry.infrahouse.com/infrahouse/rds/aws"
+  version = "0.2.2"
+
+  engine = "postgres"
+
+  environment  = "production"
+  service_name = "my-app"
+  subnet_ids   = module.vpc.private_subnet_ids
+
+  long_query_time = 0.5
+
+  parameters = [
+    { name = "work_mem", value = "16384" },
+  ]
+
+  alarm_emails = ["oncall@example.com"]
+  db_name      = "myapp"
+}
+```
+
+This creates a PostgreSQL 18 instance (latest 18.x minor) on port 5432 with the master user `postgres`.
+The parameter group family is derived as `postgres18`, `log_min_duration_statement` is set to `500`, and the
+`postgresql` and `upgrade` logs are exported to CloudWatch. Pin a minor version with `engine_version = "18.6"`.
+
 ## Custom Parameters
 
 Tune MySQL for your workload:

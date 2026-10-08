@@ -17,10 +17,10 @@ resource "aws_vpc_security_group_ingress_rule" "cidrs" {
 
   security_group_id = aws_security_group.this.id
   cidr_ipv4         = each.value
-  from_port         = var.port
-  to_port           = var.port
+  from_port         = local.port
+  to_port           = local.port
   ip_protocol       = "tcp"
-  description       = "MySQL from ${each.value}"
+  description       = "${local.engine_config.display_name} from ${each.value}"
 }
 
 resource "aws_vpc_security_group_ingress_rule" "security_groups" {
@@ -28,8 +28,8 @@ resource "aws_vpc_security_group_ingress_rule" "security_groups" {
 
   security_group_id            = aws_security_group.this.id
   referenced_security_group_id = each.value
-  from_port                    = var.port
-  to_port                      = var.port
+  from_port                    = local.port
+  to_port                      = local.port
   ip_protocol                  = "tcp"
-  description                  = "MySQL from ${each.value}"
+  description                  = "${local.engine_config.display_name} from ${each.value}"
 }

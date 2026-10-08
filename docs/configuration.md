@@ -13,15 +13,16 @@
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `engine` | `mysql` | Database engine: `mysql` or `postgres` |
 | `instance_class` | `db.t4g.medium` | RDS instance class (must support Performance Insights) |
-| `engine_version` | `8.4` | MySQL engine version |
+| `engine_version` | `null` | `8.4` for mysql, `18` for postgres (a major version picks the latest minor) |
 | `allocated_storage` | `20` | Initial storage in GiB |
 | `max_allocated_storage` | `100` | Max storage for autoscaling in GiB |
 | `storage_type` | `gp3` | Storage type (gp3, io1, io2) |
 | `multi_az` | `true` | Enable Multi-AZ deployment |
-| `port` | `3306` | Database port |
+| `port` | `null` | `3306` for mysql, `5432` for postgres |
 | `db_name` | `null` | Database name to create (null = no database) |
-| `username` | `admin` | Master username |
+| `username` | `null` | `admin` for mysql, `postgres` for postgres |
 
 ## Operational Settings
 
@@ -33,18 +34,36 @@
 | `backup_retention_period` | `7` | Days to retain automated backups |
 | `backup_window` | `02:00-02:30` | Preferred backup window (UTC) |
 | `maintenance_window` | `Mon:03:00-Mon:04:00` | Preferred maintenance window (UTC) |
-| `read_only` | `false` | Set the database to read-only mode |
+| `read_only` | `false` | Set the database to read-only mode (MySQL only, see below) |
 | `performance_insights_retention_period` | `7` | PI retention in days (7 = free tier) |
 
 ## Parameter Group
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `parameter_group_family` | `null` | Auto-derived from engine_version (e.g., `mysql8.4`) |
-| `long_query_time` | `1` | Slow query threshold in seconds |
+| `parameter_group_family` | `null` | Auto-derived from engine and engine_version (`mysql8.4`, `postgres18`) |
+| `long_query_time` | `1` | Slow query threshold in seconds (both engines) |
 | `parameters` | `[]` | Additional DB parameters to set |
 
-Example of custom parameters:
+Parameters the module sets:
+
+| Engine | Parameter | Value |
+|--------|-----------|-------|
+| mysql | `log_bin_trust_function_creators` | `1` |
+| mysql | `binlog_format` | `ROW` |
+| mysql | `performance_schema` | `1` (pending reboot) |
+| mysql | `read_only` | `1` if `read_only = true`, else `0` |
+| mysql | `long_query_time` | `long_query_time` |
+| postgres | `log_min_duration_statement` | `long_query_time` × 1000 (milliseconds) |
+
+On PostgreSQL, TLS is already required (`rds.force_ssl = 1`) and `pg_stat_statements` is already in
+`shared_preload_libraries` by RDS default for `postgres18`, so the module doesn't set them.
+
+`read_only = true` is rejected when `engine = "postgres"`. PostgreSQL has no server-wide read-only switch:
+`default_transaction_read_only` only sets the session default, and any client can turn it off with `SET`.
+Revoke write privileges or use a read replica instead.
+
+Example of custom parameters (MySQL):
 
 ```hcl
 parameters = [
@@ -52,6 +71,17 @@ parameters = [
   { name = "innodb_buffer_pool_size", value = "{DBInstanceClassMemory*3/4}" },
 ]
 ```
+
+Example of custom parameters (PostgreSQL):
+
+```hcl
+parameters = [
+  { name = "work_mem", value = "16384" },
+  { name = "idle_in_transaction_session_timeout", value = "600000" },
+]
+```
+
+Additional parameters are applied with `apply_method = "immediate"`, so use them for dynamic parameters only.
 
 ## Notifications
 
@@ -146,7 +176,7 @@ notifications = {
 | `vanta_non_prod` | `null` | VantaNonProd (derived from environment) |
 | `vanta_contains_user_data` | `true` | VantaContainsUserData |
 | `vanta_contains_ephi` | `false` | VantaContainsEPHI |
-| `vanta_description` | `RDS MySQL database` | VantaDescription |
+| `vanta_description` | `null` | `RDS MySQL database` or `RDS PostgreSQL database` |
 | `vanta_user_data_stored` | `null` | VantaUserDataStored |
 
 ## Outputs

@@ -41,6 +41,17 @@ variable "allowed_cidrs" {
 
 ## Instance Configuration
 
+variable "engine" {
+  type        = string
+  description = "Database engine: \"mysql\" or \"postgres\""
+  default     = "mysql"
+
+  validation {
+    condition     = contains(["mysql", "postgres"], var.engine)
+    error_message = "engine must be either \"mysql\" or \"postgres\". Got: ${var.engine}"
+  }
+}
+
 variable "instance_class" {
   type        = string
   description = "RDS instance class"
@@ -49,8 +60,11 @@ variable "instance_class" {
 
 variable "engine_version" {
   type        = string
-  description = "MySQL engine version"
-  default     = "8.4"
+  description = <<-EOT
+    Engine version. null = per-engine default ("8.4" for mysql, "18" for postgres).
+    A major version (e.g. "18") lets RDS pick the latest minor version.
+  EOT
+  default     = null
 }
 
 variable "allocated_storage" {
@@ -73,8 +87,8 @@ variable "db_name" {
 
 variable "username" {
   type        = string
-  description = "Master username"
-  default     = "admin"
+  description = "Master username (null = \"admin\" for mysql, \"postgres\" for postgres)"
+  default     = null
 }
 
 variable "multi_az" {
@@ -121,14 +135,22 @@ variable "kms_key_id" {
 
 variable "parameter_group_family" {
   type        = string
-  description = "DB parameter group family (null = derived from engine_version)"
+  description = "DB parameter group family (null = derived from engine and engine_version, e.g. mysql8.4, postgres18)"
   default     = null
 }
 
 variable "long_query_time" {
   type        = number
-  description = "Threshold in seconds for slow query logging"
+  description = <<-EOT
+    Threshold in seconds for slow query logging.
+    Sets long_query_time on mysql and log_min_duration_statement (in milliseconds) on postgres.
+  EOT
   default     = 1
+
+  validation {
+    condition     = var.long_query_time >= 0
+    error_message = "long_query_time must be non-negative. Got: ${var.long_query_time}"
+  }
 }
 
 variable "parameters" {
@@ -142,8 +164,8 @@ variable "parameters" {
 
 variable "port" {
   type        = number
-  description = "Database port"
-  default     = 3306
+  description = "Database port (null = 3306 for mysql, 5432 for postgres)"
+  default     = null
 }
 
 variable "identifier_prefix" {
@@ -166,7 +188,10 @@ variable "backup_window" {
 
 variable "read_only" {
   type        = bool
-  description = "Set the database to read-only mode (immediate, no reboot)"
+  description = <<-EOT
+    Set the database to read-only mode (immediate, no reboot). MySQL only;
+    PostgreSQL has no equivalent server-wide setting, so true is rejected when engine = "postgres".
+  EOT
   default     = false
 }
 
@@ -333,8 +358,8 @@ variable "vanta_contains_ephi" {
 
 variable "vanta_description" {
   type        = string
-  description = "VantaDescription"
-  default     = "RDS MySQL database"
+  description = "VantaDescription (null = \"RDS MySQL database\" or \"RDS PostgreSQL database\")"
+  default     = null
 }
 
 variable "vanta_user_data_stored" {
