@@ -15,7 +15,8 @@ module "rds" {
   service_name = "test-rds-pg"
   subnet_ids   = var.subnet_ids
 
-  instance_class          = "db.t4g.medium"
+  # db.t4g has no Multi-AZ capacity in us-west-1c at times; db.t3.medium has the same 4 GiB and supports PI
+  instance_class          = "db.t3.medium"
   db_name                 = "testdb"
   deletion_protection     = false
   skip_final_snapshot     = true
