@@ -45,3 +45,7 @@ output "parameter_group_name" {
 output "dashboard_name" {
   value = module.rds.dashboard_name
 }
+
+output "alarm_topic_arn" {
+  value = aws_sns_topic.test.arn
+}
