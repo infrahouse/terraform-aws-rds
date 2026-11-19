@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_metric_alarm" "cpu_utilization" {
-  alarm_name          = "${var.service_name}-${var.environment}-cpu-utilization"
+  alarm_name          = local.alarm_names["cpu-utilization"]
   alarm_description   = "RDS CPU utilization above ${var.alarm_cpu_threshold}%"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = var.alarm_cpu_evaluation_periods
@@ -21,7 +21,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_utilization" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "freeable_memory" {
-  alarm_name          = "${var.service_name}-${var.environment}-freeable-memory"
+  alarm_name          = local.alarm_names["freeable-memory"]
   alarm_description   = "RDS freeable memory below ${var.alarm_memory_percent}% of total"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = var.alarm_memory_evaluation_periods
@@ -43,7 +43,7 @@ resource "aws_cloudwatch_metric_alarm" "freeable_memory" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "free_storage_normal" {
-  alarm_name          = "${var.service_name}-${var.environment}-free-storage-normal"
+  alarm_name          = local.alarm_names["free-storage-normal"]
   alarm_description   = "RDS free storage below ${var.alarm_storage_percent_normal}%"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = var.alarm_storage_evaluation_periods
@@ -65,7 +65,7 @@ resource "aws_cloudwatch_metric_alarm" "free_storage_normal" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "free_storage_high" {
-  alarm_name          = "${var.service_name}-${var.environment}-free-storage-high"
+  alarm_name          = local.alarm_names["free-storage-high"]
   alarm_description   = "RDS free storage below ${var.alarm_storage_percent_high}%"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = var.alarm_storage_evaluation_periods
@@ -87,7 +87,7 @@ resource "aws_cloudwatch_metric_alarm" "free_storage_high" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "free_storage_urgent" {
-  alarm_name          = "${var.service_name}-${var.environment}-free-storage-urgent"
+  alarm_name          = local.alarm_names["free-storage-urgent"]
   alarm_description   = "RDS free storage below ${var.alarm_storage_percent_urgent}% — imminent outage"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = var.alarm_storage_evaluation_periods
@@ -109,7 +109,7 @@ resource "aws_cloudwatch_metric_alarm" "free_storage_urgent" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "disk_queue_depth" {
-  alarm_name          = "${var.service_name}-${var.environment}-disk-queue-depth"
+  alarm_name          = local.alarm_names["disk-queue-depth"]
   alarm_description   = "RDS disk queue depth above ${var.alarm_disk_queue_depth_threshold}"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = var.alarm_disk_queue_evaluation_periods
@@ -131,7 +131,7 @@ resource "aws_cloudwatch_metric_alarm" "disk_queue_depth" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "database_connections" {
-  alarm_name          = "${var.service_name}-${var.environment}-database-connections"
+  alarm_name          = local.alarm_names["database-connections"]
   alarm_description   = "RDS database connections above ${local.connections_threshold}"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = var.alarm_connections_evaluation_periods
