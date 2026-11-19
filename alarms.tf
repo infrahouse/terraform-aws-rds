@@ -195,12 +195,13 @@ resource "aws_cloudwatch_metric_alarm" "out_of_shared_memory" {
 
   alarm_name = local.alarm_names["out-of-shared-memory"]
   alarm_description = join(" ", [
-    "PostgreSQL answered \"out of shared memory\" (SQLSTATE 53200): its lock table was full. The table holds about",
-    "max_locks_per_transaction × max_connections table and advisory locks for the whole server; a transaction that",
-    "takes more, such as one advisory lock per row, fails every session that needs a lock until it ends. Row locks",
-    "don't count, PostgreSQL keeps them in the rows. Find the sessions in PostgreSQL's log,",
-    "${data.aws_cloudwatch_log_group.postgresql[0].name}, on the lines with \"out of shared memory\" and the",
-    "STATEMENT line after each. While the table is full, pg_locks shows who holds the locks:",
+    "PostgreSQL answered \"out of shared memory\" (SQLSTATE 53200). With a HINT naming max_locks_per_transaction,",
+    "its lock table was full: the table holds about max_locks_per_transaction × max_connections table and advisory",
+    "locks for the whole server, and a transaction that takes more, such as one advisory lock per row, fails every",
+    "session that needs a lock until it ends. Row locks don't count. \"out of shared memory (N bytes requested)\"",
+    "means shared memory itself ran out, not the lock table. Find the sessions in PostgreSQL's log,",
+    "${data.aws_cloudwatch_log_group.postgresql[0].name}, on the lines with \"out of shared memory\" and the HINT and",
+    "STATEMENT lines after each. While the lock table is full, pg_locks shows who holds the locks:",
     "SELECT pid, locktype, count(*) FROM pg_locks GROUP BY 1, 2 ORDER BY 3 DESC.",
   ])
   comparison_operator = "GreaterThanOrEqualToThreshold"
