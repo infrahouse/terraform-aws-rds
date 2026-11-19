@@ -15,12 +15,14 @@ built-in observability, security hardening, and compliance tagging.
 ## Features
 
 - **MySQL 8.x or PostgreSQL** (`engine = "mysql"` or `"postgres"`) with Performance Insights always enabled
-- **CloudWatch alarms** with severity-based routing (urgent/high/normal)
+- **CloudWatch alarms** with severity-based routing (urgent/high/normal), and on PostgreSQL an alarm when its lock
+  table fills ("out of shared memory")
 - **Per-engine CloudWatch dashboard** — InnoDB, threads, and locks for MySQL; transactions, tuples, buffer cache,
   checkpoints, and transaction ID age for PostgreSQL; CPU, memory, storage, IOPS, and latency for both
 - **Slow query logging** from one `long_query_time` knob for both engines
 - **TLS required** on PostgreSQL (`rds.force_ssl = 1`, the RDS default)
-- **Automatic SNS topic** creation with email subscriptions when explicit topic ARNs aren't provided
+- **Automatic SNS topic** creation with email subscriptions when explicit topic ARNs aren't provided, encrypted with
+  a customer-managed KMS key that CloudWatch can use
 - **Storage encryption** (KMS) enabled by default
 - **Multi-AZ** deployment by default
 - **Vanta compliance tags** for SOC2/ISO27001 audits
@@ -50,7 +52,7 @@ module "rds" {
 This creates a `db.t4g.medium` MySQL 8.4 instance with:
 - Multi-AZ enabled
 - 20 GiB gp3 storage (autoscales to 100 GiB)
-- 7 CloudWatch alarms routed to an auto-created SNS topic
+- 7 CloudWatch alarms routed to an auto-created SNS topic (8 on PostgreSQL)
 - A comprehensive CloudWatch dashboard
 - Deletion protection enabled
 

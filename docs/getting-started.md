@@ -59,8 +59,9 @@ aws secretsmanager get-secret-value \
 | `aws_db_parameter_group` | Engine parameters (slow query logging; binlog and performance_schema on MySQL) |
 | `aws_security_group` | Network access control |
 | `aws_cloudwatch_metric_alarm` (x7) | CPU, memory, storage (3 tiers), disk queue, connections |
+| `aws_cloudwatch_log_metric_filter` + alarm | PostgreSQL only: the lock table's "out of shared memory" errors |
 | `aws_cloudwatch_dashboard` | Per-engine monitoring dashboard |
-| `aws_sns_topic` + subscriptions | Alarm notifications (if not providing your own) |
+| `aws_sns_topic` + subscriptions + `aws_kms_key` | Alarm notifications (if not providing your own) |
 
 ## Next Steps
 

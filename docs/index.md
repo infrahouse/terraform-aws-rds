@@ -6,10 +6,12 @@ built-in observability, security hardening, and compliance tagging.
 ## Features
 
 - **MySQL 8.x or PostgreSQL** (`engine = "mysql"` or `"postgres"`) with Performance Insights always enabled
-- **7 CloudWatch alarms** with severity-based routing (urgent/high/normal)
+- **7 CloudWatch alarms** with severity-based routing (urgent/high/normal), and an 8th on PostgreSQL when its lock
+  table fills
 - **Per-engine CloudWatch dashboard** with 20+ panels: InnoDB internals, threads, and locks for MySQL;
   transactions, tuples, buffer cache, checkpoints, and transaction ID age for PostgreSQL
-- **Automatic SNS notifications** — pass emails and the module handles topic creation;
+- **Automatic SNS notifications** — pass emails and the module handles topic creation, under a KMS key CloudWatch
+  can use;
   or bring your own SNS topic ARNs for advanced routing
 - **Storage encryption** (AWS-managed or customer KMS key)
 - **Multi-AZ** deployment by default
