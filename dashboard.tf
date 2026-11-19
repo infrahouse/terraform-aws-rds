@@ -262,15 +262,21 @@ locals {
               [
                 for i, m in w.metrics : [merge(
                   {
-                    expression = try(w.cumulative, false) ? "RATE(c${i + 1}) * 60" : "${local.pi}, '${m[0]}.avg')"
-                    label      = m[1]
-                    id         = "e${i + 1}"
+                    expression = (
+                      try(w.cumulative, false)
+                      ? "IF(RATE(c${i + 1}) >= 0, RATE(c${i + 1}) * 60)"
+                      : "${local.pi}, '${m[0]}.avg')"
+                    )
+                    label = m[1]
+                    id    = "e${i + 1}"
                   },
                   try(m[2], {}),
                 )]
               ],
               # A running total, hidden, under the rate per minute that RATE() makes of it. RATE() divides by the
-              # time between points, so it stays per minute when the console widens the period.
+              # time between points, so it stays per minute when the console widens the period. The total starts
+              # again when the instance restarts or fails over; IF() drops that one negative point, which would
+              # otherwise scale the graph to minus the whole total.
               [
                 for i, m in w.metrics :
                 [{ expression = "${local.pi}, '${m[0]}.avg')", id = "c${i + 1}", visible = false }]

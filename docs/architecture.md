@@ -134,6 +134,7 @@ The system panels start on a row of their own, below the engine's panels.
 Metric math keeps its input's unit, so the storage and memory panels, which divide bytes to GiB or MiB, hide the
 unit (`showUnits = false`) rather than show "15.4 byte". Performance Insights reports
 `db.User.total_auth_attempts` as a running total, so the connection attempts panel plots `RATE()` of it, times 60.
+The total starts again when the instance restarts or fails over, and the panel drops that one negative point.
 
 All PI-based widgets use `DB_PERF_INSIGHTS` math expressions, which require the instance
 to have Performance Insights enabled. Counter names follow the AWS
