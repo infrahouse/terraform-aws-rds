@@ -22,6 +22,7 @@ locals {
   # per-metric options); any other attribute (annotations, stacked, view, period) is passed through
   # to the widget properties. Counter names come from "Performance Insights counter metrics" in the
   # RDS User Guide. "header" holds two single-value stats, "body" holds time series two per row.
+  # cumulative = true marks counters that PI reports as running totals: they're plotted per minute.
   engine_pi_widgets = {
     mysql = {
       header = [
@@ -154,8 +155,10 @@ locals {
           annotations = local.connections_annotations
         },
         {
-          title   = "PostgreSQL Connection Attempts (per minute)"
-          metrics = [["db.User.total_auth_attempts", "total_auth_attempts"]]
+          # PI reports total_auth_attempts as a running total (unit Connections, not per second), so it only climbs
+          title      = "PostgreSQL Connection Attempts (per minute)"
+          metrics    = [["db.User.total_auth_attempts", "Connection attempts"]]
+          cumulative = true
         },
 
         # ── Transactions ────────────────────────────────────────────────
@@ -255,12 +258,27 @@ locals {
           defaults,
           {
             title = w.title
-            metrics = [
-              for i, m in w.metrics :
-              [merge({ expression = "${local.pi}, '${m[0]}.avg')", label = m[1], id = "e${i + 1}" }, try(m[2], {}))]
-            ]
+            metrics = concat(
+              [
+                for i, m in w.metrics : [merge(
+                  {
+                    expression = try(w.cumulative, false) ? "RATE(c${i + 1}) * 60" : "${local.pi}, '${m[0]}.avg')"
+                    label      = m[1]
+                    id         = "e${i + 1}"
+                  },
+                  try(m[2], {}),
+                )]
+              ],
+              # A running total, hidden, under the rate per minute that RATE() makes of it. RATE() divides by the
+              # time between points, so it stays per minute when the console widens the period.
+              [
+                for i, m in w.metrics :
+                [{ expression = "${local.pi}, '${m[0]}.avg')", id = "c${i + 1}", visible = false }]
+                if try(w.cumulative, false)
+              ],
+            )
           },
-          { for k, v in w : k => v if !contains(["title", "metrics"], k) },
+          { for k, v in w : k => v if !contains(["title", "metrics", "cumulative"], k) },
         )
       }
     ]
@@ -289,6 +307,8 @@ locals {
   ]
 
   # ── Engine-neutral widgets (AWS/RDS namespace) ─────────────────────────
+  # Metric math keeps its input's unit, so a byte count divided to MiB or GiB still reads as bytes ("15.4 byte")
+  # unless the widget hides the unit.
   free_storage_stat = {
     type = "metric"
     properties = {
@@ -302,6 +322,9 @@ locals {
       title  = "Free Storage (GiB)"
       period = 300
       stat   = "Average"
+      yAxis = {
+        left = { showUnits = false }
+      }
     }
   }
 
@@ -383,7 +406,7 @@ locals {
         period = 60
         stat   = "Average"
         yAxis = {
-          left = { label = "MiB" }
+          left = { label = "MiB", showUnits = false }
         }
         annotations = {
           horizontal = [
@@ -429,7 +452,7 @@ locals {
         period = 60
         stat   = "Average"
         yAxis = {
-          left = { label = "GiB" }
+          left = { label = "GiB", showUnits = false }
         }
         annotations = {
           horizontal = [
