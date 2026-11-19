@@ -39,7 +39,7 @@ built-in observability, security hardening, and compliance tagging.
 ```hcl
 module "rds" {
   source  = "registry.infrahouse.com/infrahouse/rds/aws"
-  version = "0.3.0"
+  version = "0.4.0"
 
   environment  = "production"
   service_name = "my-app"
@@ -61,7 +61,7 @@ This creates a `db.t4g.medium` MySQL 8.4 instance with:
 ```hcl
 module "rds" {
   source  = "registry.infrahouse.com/infrahouse/rds/aws"
-  version = "0.3.0"
+  version = "0.4.0"
 
   engine = "postgres"
 
