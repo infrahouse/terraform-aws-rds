@@ -266,6 +266,28 @@ locals {
     ]
   }
 
+  # ── The lock table's errors (PostgreSQL only, alarms.tf) ────────────────
+  # The metric has no point while the log is quiet; FILL() draws those periods as 0 errors, not "No data available".
+  lock_table_widgets = [
+    for alarm in aws_cloudwatch_metric_alarm.out_of_shared_memory : {
+      type = "metric"
+      properties = {
+        metrics = [
+          [{ expression = "FILL(m1, 0)", label = "out of shared memory", id = "e1" }],
+          [alarm.namespace, alarm.metric_name, { id = "m1", visible = false }],
+        ]
+        view   = "timeSeries"
+        region = local.region
+        title  = "PostgreSQL Lock Table Errors (per 5 minutes)"
+        period = alarm.period
+        stat   = alarm.statistic
+        annotations = {
+          horizontal = [{ value = alarm.threshold, label = "Alarm threshold" }]
+        }
+      }
+    }
+  ]
+
   # ── Engine-neutral widgets (AWS/RDS namespace) ─────────────────────────
   free_storage_stat = {
     type = "metric"
@@ -454,7 +476,9 @@ locals {
     local.engine_widgets.header[1],
     local.connections_stat,
   ]
-  body_widgets = concat(local.engine_widgets.body, local.system_widgets)
+  engine_body_widgets = concat(local.engine_widgets.body, local.lock_table_widgets)
+  # The system widgets start on a row of their own, so their pairs stay together after an odd number of engine widgets
+  engine_body_rows = ceil(length(local.engine_body_widgets) / 2)
 }
 
 resource "aws_cloudwatch_dashboard" "this" {
@@ -464,8 +488,12 @@ resource "aws_cloudwatch_dashboard" "this" {
       # One row of 6x3 stats, then 12x6 time series, two per row
       [for i, w in local.header_widgets : merge(w, { x = i * 6, y = 0, width = 6, height = 3 })],
       [
-        for i, w in local.body_widgets :
+        for i, w in local.engine_body_widgets :
         merge(w, { x = (i % 2) * 12, y = 3 + floor(i / 2) * 6, width = 12, height = 6 })
+      ],
+      [
+        for i, w in local.system_widgets :
+        merge(w, { x = (i % 2) * 12, y = 3 + (local.engine_body_rows + floor(i / 2)) * 6, width = 12, height = 6 })
       ],
     )
   })
