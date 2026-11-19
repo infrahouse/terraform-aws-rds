@@ -93,6 +93,10 @@ Additional parameters are applied with `apply_method = "immediate"`, so use them
 When `notifications` is empty (default), the module creates an SNS topic and subscribes
 all `alarm_emails`. When `notifications` is set, the provided ARNs are used directly.
 
+The module's own topic is encrypted with a customer-managed KMS key whose policy lets CloudWatch use it for the
+module's alarms. CloudWatch can't publish to a topic under the AWS-managed `alias/aws/sns` key, so if you pass
+your own topics, give each a key like it, or none.
+
 ```hcl
 # Advanced: route urgent to PagerDuty, normal to email
 notifications = {

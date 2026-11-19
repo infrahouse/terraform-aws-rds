@@ -16,6 +16,31 @@ activity. An idle instance shows "No data available" for PI-based panels.
 **Fix:** Check the inbox (and spam folder) of each address in `alarm_emails` for the
 AWS SNS confirmation email. Click "Confirm subscription" in each.
 
+**Cause:** The topic is encrypted with `alias/aws/sns`, which CloudWatch can't use. The module's own topic was,
+up to 0.3.0. The alarm's history says "CloudWatch Alarms does not have authorization to access the SNS topic
+encryption key".
+
+**Fix:** Upgrade the module: its topic gets a key CloudWatch can use, in place, and the subscriptions stay. For a
+topic of your own, passed in `notifications`, use a customer-managed key whose policy lets
+`cloudwatch.amazonaws.com` use `kms:Decrypt` and `kms:GenerateDataKey*`.
+
+### PostgreSQL lock table alarm: "out of shared memory"
+
+**Cause:** PostgreSQL's shared lock table filled. It holds about `max_locks_per_transaction` × `max_connections`
+table and advisory locks for the whole server, and every session that needs a lock fails until the transaction
+that filled it ends. Row locks don't count: PostgreSQL keeps them in the rows.
+
+**Fix:** Find the transaction. In the instance's log group, `/aws/rds/instance/<identifier>/postgresql`, each
+error line is followed by the STATEMENT that hit it. While the table is full, `pg_locks` shows who holds the
+locks:
+
+```sql
+SELECT pid, locktype, count(*) FROM pg_locks GROUP BY 1, 2 ORDER BY 3 DESC;
+```
+
+Take fewer locks in one transaction, such as in batches. Raising `max_locks_per_transaction` needs a restart, costs
+shared memory, and only moves the limit.
+
 ### Instance creation fails with "Performance Insights not supported"
 
 **Cause:** The chosen `instance_class` doesn't support Performance Insights for the

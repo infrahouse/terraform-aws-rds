@@ -39,6 +39,10 @@ Run a single test: `pytest tests/test_foo.py::test_bar -k "aws-6"`
 
 Key design patterns:
 - CloudWatch alarms use severity-based SNS topics (urgent/high/normal) -- users pass SNS topic ARNs per severity, not per alarm
+- Without `notifications`, the module's own topic uses a customer-managed KMS key whose policy names each alarm's ARN.
+  Every alarm's name comes from `local.alarm_names` (`locals.tf`); a new alarm must be added there, or it can't publish
+- PostgreSQL's lock table alarm counts "out of shared memory" in the `postgresql` log group, which RDS creates and
+  the module reads with a data source (`alarms.tf`), never creates
 - Vanta compliance tags (`VantaOwner`, `VantaNonProd`, `VantaContainsUserData`, etc.) are applied to the RDS instance
 - Deletion protection is enabled by default
 - Storage encryption uses KMS
