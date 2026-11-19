@@ -131,8 +131,10 @@ Each engine gets its own Performance Insights panels, followed by the same syste
 
 The system panels start on a row of their own, below the engine's panels.
 
-Metric math keeps its input's unit, so the storage and memory panels, which divide bytes to GiB or MiB, hide the
-unit (`showUnits = false`) rather than show "15.4 byte". Performance Insights reports
+Metric math keeps its input's unit: a byte count divided to GiB still reads as bytes, "15.4 byte". So the Free
+Storage stat shows `FreeStorageSpace` as it is, and the console scales the bytes itself ("16.5 GB"); the storage
+and memory graphs, which divide bytes to GiB or MiB, hide the unit on their axis (`showUnits = false`), which a
+stat doesn't have. Performance Insights reports
 `db.User.total_auth_attempts` as a running total, so the connection attempts panel plots `RATE()` of it, times 60.
 The total starts again when the instance restarts or fails over, and the panel drops that one negative point.
 

@@ -313,24 +313,20 @@ locals {
   ]
 
   # ── Engine-neutral widgets (AWS/RDS namespace) ─────────────────────────
-  # Metric math keeps its input's unit, so a byte count divided to MiB or GiB still reads as bytes ("15.4 byte")
-  # unless the widget hides the unit.
+  # Metric math keeps its input's unit, so a byte count divided to MiB or GiB still reads as bytes ("15.4 byte").
+  # The graphs below hide the unit on their axis. A stat has no axis and showUnits doesn't apply to it, so the stat
+  # shows FreeStorageSpace as it is, and the console scales its bytes itself ("16.5 GB").
   free_storage_stat = {
     type = "metric"
     properties = {
       metrics = [
-        [{ expression = "m1 / 1024 / 1024 / 1024", label = "GiB", id = "e1" }],
-        ["AWS/RDS", "FreeStorageSpace", "DBInstanceIdentifier", local.db_identifier,
-        { id = "m1", visible = false }]
+        ["AWS/RDS", "FreeStorageSpace", "DBInstanceIdentifier", local.db_identifier]
       ]
       view   = "singleValue"
       region = local.region
-      title  = "Free Storage (GiB)"
+      title  = "Free Storage"
       period = 300
       stat   = "Average"
-      yAxis = {
-        left = { showUnits = false }
-      }
     }
   }
 
