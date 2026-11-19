@@ -1,0 +1,8 @@
+.terraform/
+*.tfstate*
+.terraform.lock.hcl
+terraform.tfvars
+terraform.tf
+# Written by test_upgrade_from_0_3_0 for the release it upgrades from
+module_override.tf
+tfplan
