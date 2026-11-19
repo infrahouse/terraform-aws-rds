@@ -56,11 +56,8 @@ UPGRADE_SERVICE_NAME = "test-rds-pgup"
 LOCK_TABLE_NAMESPACE = "InfraHouse/RDS"
 LOCK_TABLE_WIDGET = "PostgreSQL Lock Table Errors (per 5 minutes)"
 CONNECTION_ATTEMPTS_WIDGET = "PostgreSQL Connection Attempts (per minute)"
-UNIT_HIDDEN_WIDGETS = [
-    "Free Storage (GiB)",
-    "Free Storage Space (GiB)",
-    "Freeable Memory (total: ",
-]
+FREE_STORAGE_STAT = "Free Storage"
+UNIT_HIDDEN_WIDGETS = ["Free Storage Space (GiB)", "Freeable Memory (total: "]
 
 # Lines in the shape of the ones LoopProof staging's database logged on 2026-11-18 (IH-169), from RDS's prefix
 # %t:%r:%u@%d:[%p]:, with an address from RFC 5737's documentation range and a made-up user, database, process and
@@ -200,19 +197,24 @@ def _widget_titles(dashboard_body: str) -> List[str]:
     return [w["properties"]["title"] for w in json.loads(dashboard_body)["widgets"]]
 
 
-def _widget(dashboard_body: str, title_prefix: str) -> Dict:
+def _widget(dashboard_body: str, title_prefix: str, exact: bool = False) -> Dict:
     """
-    Find the one widget whose title starts with a prefix.
+    Find the one widget whose title starts with a prefix, or is a title.
 
     :param dashboard_body: Dashboard body JSON as returned by GetDashboard
     :param title_prefix: The title, or its start for titles with a computed end
+    :param exact: Match the whole title
     :return: The widget
     :raise AssertionError: If not exactly one widget matches
     """
     widgets = [
         w
         for w in json.loads(dashboard_body)["widgets"]
-        if w["properties"]["title"].startswith(title_prefix)
+        if (
+            w["properties"]["title"] == title_prefix
+            if exact
+            else w["properties"]["title"].startswith(title_prefix)
+        )
     ]
     assert len(widgets) == 1, (title_prefix, _widget_titles(dashboard_body))
     return widgets[0]
@@ -227,9 +229,12 @@ def _widget_queries(widget: Dict) -> List[Dict]:
     """
     period = widget["properties"]["period"]
     queries = []
-    for row in widget["properties"]["metrics"]:
+    for n, row in enumerate(widget["properties"]["metrics"], start=1):
         options = row[-1] if isinstance(row[-1], dict) else {}
-        query = {"Id": options["id"], "ReturnData": options.get("visible", True)}
+        query = {
+            "Id": options.get("id", f"q{n}"),
+            "ReturnData": options.get("visible", True),
+        }
         if "expression" in options:
             query["Expression"] = options["expression"]
             query["Period"] = period
@@ -340,7 +345,16 @@ def _check_dashboard(
     """
     _assert_no_overlap(dashboard_body)
 
-    # Metric math keeps FreeStorageSpace's and FreeableMemory's unit, Bytes, after they're divided to GiB and MiB
+    # The stat shows FreeStorageSpace as it is, and the console scales its bytes: no metric math, which keeps the
+    # unit, Bytes, after dividing to GiB, and reads "15.4 byte" on a stat
+    widget = _widget(dashboard_body, FREE_STORAGE_STAT, exact=True)
+    assert widget["properties"]["view"] == "singleValue", widget
+    assert [row[:2] for row in widget["properties"]["metrics"]] == [
+        ["AWS/RDS", "FreeStorageSpace"]
+    ], widget
+    _assert_widget_data(cloudwatch_client, widget)
+
+    # The graphs divide FreeStorageSpace and FreeableMemory to GiB and MiB, and hide the unit on their axis
     for title in UNIT_HIDDEN_WIDGETS:
         widget = _widget(dashboard_body, title)
         assert widget["properties"]["yAxis"]["left"]["showUnits"] is False, widget
