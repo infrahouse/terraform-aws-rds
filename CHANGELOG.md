@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-11-19
+
+### Bug Fixes
+
+- Show storage in GiB and connection attempts per minute
+- Drop the point where connection attempts' running total restarts
+- Say what "out of shared memory (N bytes requested)" means
+- Show free storage as the plain metric the console scales
+
+### Documentation
+
+- Describe the lock table alarm, the topic's key and the fixed widgets
+- Troubleshoot the bytes-requested variant and a first apply's missing log group
+
+### Features
+
+- Give the module's alarm topic a key CloudWatch can use
+- Alarm when PostgreSQL's lock table fills
+
+### Testing
+
+- Cover the lock table alarm, the topic's key and the upgrade from 0.3.0
+
 ## [0.3.0] - 2026-10-08
 
 ### Bug Fixes
