@@ -131,6 +131,22 @@ locals {
     var.tags
   )
 
+  # Every alarm's name, by suffix. The module's own topic's key (notifications.tf) lets CloudWatch publish for these
+  # alarms only, so an alarm added without a name here couldn't reach that topic.
+  alarm_suffixes = concat(
+    [
+      "cpu-utilization",
+      "freeable-memory",
+      "free-storage-normal",
+      "free-storage-high",
+      "free-storage-urgent",
+      "disk-queue-depth",
+      "database-connections",
+    ],
+    var.engine == "postgres" ? ["out-of-shared-memory"] : [],
+  )
+  alarm_names = { for suffix in local.alarm_suffixes : suffix => "${var.service_name}-${var.environment}-${suffix}" }
+
   # Alarm notification targets
   alarm_actions_urgent = [local.create_sns_topic ? aws_sns_topic.alarms[0].arn : var.notifications.urgent]
   alarm_actions_high   = [local.create_sns_topic ? aws_sns_topic.alarms[0].arn : var.notifications.high]
