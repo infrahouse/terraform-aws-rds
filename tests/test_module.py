@@ -352,7 +352,7 @@ def _check_dashboard(
     # total_auth_attempts is a running total: the visible line is its rate per minute
     widget = _widget(dashboard_body, CONNECTION_ATTEMPTS_WIDGET)
     metrics = {row[0]["id"]: row[0] for row in widget["properties"]["metrics"]}
-    assert metrics["e1"]["expression"] == "RATE(c1) * 60", metrics
+    assert metrics["e1"]["expression"] == "IF(RATE(c1) >= 0, RATE(c1) * 60)", metrics
     assert metrics["e1"].get("visible", True), metrics
     assert "'db.User.total_auth_attempts.avg'" in metrics["c1"]["expression"], metrics
     assert metrics["c1"]["visible"] is False, metrics
